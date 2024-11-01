@@ -1,0 +1,26 @@
+config.py
+*.py[cod]
+.idea
+/.vscode/
+*.sqlite3
+*__pycache__/
+/media/
+*.so
+*.log
+/collect_static/
+aiqa_syn.run.xml
+
+/data/
+/ignore*
+.DS_Store
+.python-version
+*.pid
+.sock
+scripts/test*
+# mof
+api/api_mof/score_plot/*
+api/api_mof/conf/*
+api/api_mof/ckpt/*
+lightning_logs/
+# darlin setting log
+/log/
