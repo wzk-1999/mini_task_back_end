@@ -12,6 +12,7 @@ class Config:
 
     ARK_API_KEY = "your embedding api key"
     ARK_MODEL = "your embedding model"
+    ARK_API_LINK = "your embedding model api link" # for Volcano Ark provider is using sdk not api
     # ----------------chat model-----------------------------------
     LLM_API_URL = "your llm api url"
     LLM_API_KEY = "chat llm api key"

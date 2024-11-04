@@ -12,7 +12,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
-from utilities.knowledgeBaseUtilities import filter_advertisements
+from utilities.knowledgeBaseUtilities import filter_advertisements, create_knowledge_base, upload_file_in_binary, \
+    embedding_file
 
 # Initialize the database
 init_db()
@@ -80,14 +81,24 @@ def process_website(url):
     existing_entry = db.query(WebsiteEmbedding).filter(WebsiteEmbedding.url == url).first()
     if existing_entry:
         print("Skipped - URL already exists in the database")
+        print("Skipped uploading and embedding to knowledge")
         return existing_entry  # Return the existing entry if found
 
     # URL does not exist, scrape, embed, and save to the database
     content = scrape_website(url)
-    # Limit content for testing purposes,
-    # reduce the token just for saving money, in production env, you need to comment this substr logic
+
+    # Check or create the knowledge base
+    create_knowledge_base("test")
+
+    # Upload the file to the knowledge base
+    filename = upload_file_in_binary(content, url)
+
+    # Initiate embedding
+    embedding_file(filename)
+
+    # Limit content for testing purposes and saving token consumption; in production, this should be removed
     embedding = generate_embedding('\n'.join(content.splitlines()[:5]))
-    # embedding = ""
+
     top_keywords = extract_keywords(content, num_keywords=5)
 
     # Save to knowledge base

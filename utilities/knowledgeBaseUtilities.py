@@ -1,5 +1,7 @@
 import re
-from ragflow import RAGFlow
+from urllib.parse import urlparse
+
+from ragflow_sdk import RAGFlow
 from config import Config
 
 def filter_advertisements(content):
@@ -27,24 +29,42 @@ def filter_advertisements(content):
 
 
 def create_knowledge_base(name):
-    rag_object = RAGFlow(api_key=Config().LLM_API_KEY, base_url=Config().LLM_API_URL)
-    dataset = rag_object.create_dataset(name=name)
+    """Create a knowledge base in RAGFlow if it doesn't exist."""
+    rag_object = RAGFlow(api_key=Config().ARK_API_KEY, base_url=Config().ARK_API_LINK)
+    datasets = rag_object.list_datasets(name=name)
+    if not datasets:
+        rag_object.create_dataset(
+            name=name,
+            avatar="",
+            description="test for English text",
+            embedding_model="BAAI/bge-large-en-v1.5",
+            language="English",
+            permission="me",
+            chunk_method="naive",
+            parser_config=None
+        )
+        print(f"Knowledge base '{name}' created.")
+    else:
+        print(f"Knowledge base '{name}' already exists.")
 
-# def upload_file_in_binary():
-#     dataset.upload_documents([{"display_name": "1.txt", "blob": "<BINARY_CONTENT_OF_THE_DOC>"}, {"display_name": "2.pdf", "blob": "<BINARY_CONTENT_OF_THE_DOC>"}])
+def upload_file_in_binary(file_content, url):
+    """Upload content in binary form to RAGFlow with a unique filename based on the URL."""
+    rag_object = RAGFlow(api_key=Config().ARK_API_KEY, base_url=Config().ARK_API_LINK)
+    dataset = rag_object.list_datasets(name="test")
 
-def embedding_file():
-    rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-    dataset = rag_object.create_dataset(name="dataset_name")
-    documents = [
-        {'display_name': 'test1.txt', 'blob': open('./test_data/test1.txt',"rb").read()},
-        {'display_name': 'test2.txt', 'blob': open('./test_data/test2.txt',"rb").read()},
-        {'display_name': 'test3.txt', 'blob': open('./test_data/test3.txt',"rb").read()}
-    ]
-    dataset.upload_documents(documents)
-    documents = dataset.list_documents(keywords="test")
-    ids = []
-    for document in documents:
-        ids.append(document.id)
-    dataset.async_parse_documents(ids)
+    # Create a filename based on URL path, replacing special characters
+    parsed_url = urlparse(url)
+    filename = f"{parsed_url.netloc}{parsed_url.path}".replace('/', '_').replace('.', '_')
+
+    # Upload the document to the RAGFlow dataset
+    dataset.upload_documents([{"display_name": f"{filename}.txt", "blob": file_content}])
+
+    return filename
+
+def embedding_file(filename):
+    rag_object = RAGFlow(api_key=Config().ARK_API_KEY, base_url=Config().ARK_API_LINK)
+    dataset = rag_object.list_datasets(name="test")
+    filename=filename+'.txt'
+    document = dataset.list_documents(name=filename)[0]
+    dataset.async_parse_documents([document.id])
     print("Async bulk parsing initiated.")
