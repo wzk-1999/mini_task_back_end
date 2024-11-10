@@ -6,3 +6,5 @@ Requests==2.32.3
 SQLAlchemy==1.4.52
 volcengine_python_sdk==1.0.106
 ragflow-sdk==0.13.0
+Flask-Cors==5.0.0
+selenium==4.26.1

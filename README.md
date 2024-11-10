@@ -38,9 +38,18 @@ register an account for api key generation
 
 `flask run`
 
+### scrape the content
+
+`scraper.py`
+
+using `selenium` to imitate human behavior，`WebDriverWait` to wait the content fully loaded for more contents
+
+**it won't scrape same url if same url already exists in database**, if you enter urls with same domain frequently, may probably been blocked by Anti-crawler mechanism, 
+config the IP pool and use proxy in this `scrape_website` function if there is indeed this demand
+
 ### embedding parsing config
 
-knowledgeBaseUtilities.py
+`knowledgeBaseUtilities.py`
 
 currently hardcode like this, you can adjust it to get better effect
 

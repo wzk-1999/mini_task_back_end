@@ -3,8 +3,8 @@ import re
 import time
 from urllib.parse import urlparse
 
-import requests
 from bs4 import BeautifulSoup
+from selenium.common import TimeoutException
 from selenium.webdriver.support.wait import WebDriverWait
 
 from config import Config
@@ -16,9 +16,6 @@ from nltk.tokenize import word_tokenize
 from collections import Counter
 
 from selenium import webdriver
-import undetected_chromedriver as uc
-
-from selenium.webdriver.chrome.options import Options
 
 from utilities.knowledgeBaseUtilities import filter_advertisements, create_knowledge_base, upload_file_in_binary, \
     embedding_file
@@ -58,8 +55,11 @@ def scrape_website(url):
     options.add_experimental_option("useAutomationExtension", False)
     driver = webdriver.Chrome(options=options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-
-    driver.get(url)
+    driver.set_page_load_timeout(180)
+    try:
+      driver.get(url)
+    except TimeoutException:
+      print("Page load timed out but continuing with the next step.")
       # Wait a few seconds for the page to load initially
     time.sleep(random.uniform(5, 10))
 
