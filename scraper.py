@@ -1,8 +1,11 @@
+import random
 import re
+import time
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from selenium.webdriver.support.wait import WebDriverWait
 
 from config import Config
 from db import WebsiteEmbedding, SessionLocal, init_db
@@ -11,6 +14,11 @@ from volcenginesdkarkruntime import Ark
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
+
+from selenium import webdriver
+import undetected_chromedriver as uc
+
+from selenium.webdriver.chrome.options import Options
 
 from utilities.knowledgeBaseUtilities import filter_advertisements, create_knowledge_base, upload_file_in_binary, \
     embedding_file
@@ -22,10 +30,61 @@ client = Ark(api_key=Config().ARK_API_KEY)
 
 
 def scrape_website(url):
-    """Scrape and clean content from the URL."""
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
+      # Create a session and set the headers
+    # session = requests.Session()
+    # session.headers.update({
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    #     'Accept-Language': 'zh-CN,zh;q=0.9,en-GB;q=0.8,en;q=0.7',
+    #     'Accept-Encoding': 'gzip, deflate, br, zstd',
+    #     'Referer': url
+    # })
+    #
+    # header={
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    #     'Accept-Language': 'zh-CN,zh;q=0.9,en-GB;q=0.8,en;q=0.7',
+    #     'Accept-Encoding': 'gzip, deflate, br, zstd',
+    #     'Referer': url
+    # }
+    #
+    # """Scrape and clean content from the URL."""
+    # response = requests.get(url,headers=header)
+    # soup = BeautifulSoup(response.content, "html.parser")
 
+
+    options = webdriver.ChromeOptions()
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+    options.add_argument("start-maximized")  # Opens Chrome maximized
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option("useAutomationExtension", False)
+    driver = webdriver.Chrome(options=options)
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+    driver.get(url)
+      # Wait a few seconds for the page to load initially
+    time.sleep(random.uniform(5, 10))
+
+      # Scroll down until the end of the page
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+      # Scroll down to the bottom
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+      # Wait to load the new content
+      time.sleep(random.uniform(4, 8))
+
+      # Use WebDriverWait to wait for new content
+      try:
+          WebDriverWait(driver, 10).until(
+              lambda d: d.execute_script("return document.body.scrollHeight") > last_height
+          )
+      except:
+          # Exit loop if page height hasn't changed
+          break
+
+      # Update last height
+      last_height = driver.execute_script("return document.body.scrollHeight")
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    driver.quit()
     # Extract raw text from the page
     content = soup.get_text()
 

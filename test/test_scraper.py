@@ -3,7 +3,7 @@ from scraper import scrape_website, process_website, save_content_to_file, extra
 
 class TestScraper(unittest.TestCase):
     def test_scrape_website_real_url(self):
-        test_url = "https://www.vrbo.com/vacation-rentals?msockid=10c55a28d319616f2d1249d6d222601a"
+        test_url = "https://www.vrbo.com/"
 
         content = scrape_website(test_url)
 
